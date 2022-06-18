@@ -9,7 +9,6 @@ import (
 	t "html/template"
 
 	"github.com/maxgio92/go-template-multiplexing/pkg/matrix"
-	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 // Returns a list of strings of executed templates from a template string
@@ -89,64 +88,5 @@ func MultiplexAndExecute(templateString string, inventory map[string][]string) (
 		matrixColumns = append(matrixColumns, part.Part)
 	}
 
-	combinations := matrix.GetCombinations(matrixColumns)
-
-	return combinations, nil
-}
-
-func generateTemplateRegex(variables []string) (string, error) {
-	if len(variables) < 1 {
-		return "", fmt.Errorf("at least one variable is required")
-	}
-
-	templateRegex := ``
-	for _, v := range variables {
-		templateRegex += `(?P<` + v + `>^.*` + openDelimiter + ` ` + v + ` ` + closeDelimiter + `.*$)?`
-	}
-
-	return templateRegex, nil
-}
-
-func getSupportedVariables(templateString string) ([]string, error) {
-	regString := openDelimiter + `\ (.+)\ ` + closeDelimiter
-	regPattern := regexp.MustCompile(regString)
-
-	ss, err := cutTemplateString(templateString, closeDelimiter)
-	if err != nil {
-		return nil, err
-	}
-
-	matches := []string{}
-	for _, s := range ss {
-		m := regPattern.FindStringSubmatch(s)
-		if len(m) < 1 {
-			return nil, fmt.Errorf("cannot find supported variables")
-		}
-
-		if !sets.NewString(matches...).Has(string(m[1])) {
-			matches = append(matches, string(m[1]))
-		}
-	}
-
-	return matches, nil
-}
-
-func cutTemplateString(t string, closeDelimiter string) ([]string, error) {
-	var parts []string
-
-	before, after, found := strings.Cut(t, closeDelimiter)
-	if !found {
-		return nil, fmt.Errorf("cannot cut input template string")
-	}
-
-	parts = append(parts, before+closeDelimiter)
-	for {
-		before, after, found = strings.Cut(after, closeDelimiter)
-		if !found {
-			break
-		}
-		parts = append(parts, before+closeDelimiter)
-	}
-
-	return parts, nil
+	return matrix.GetCombinations(matrixColumns), nil
 }

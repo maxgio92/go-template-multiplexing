@@ -1,5 +1,6 @@
 package template
 
 const (
-	delimiter = "}}"
+	openDelimiter  = "{{"
+	closeDelimiter = "}}"
 )

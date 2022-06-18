@@ -29,33 +29,33 @@ func MultiplexAndExecute(templateString string, inventory map[string][]string) (
 		return nil, err
 	}
 
-	myTemplateRegex, err := generateTemplateRegex(supportedVariables)
+	templateRegex, err := generateTemplateRegex(supportedVariables)
 	if err != nil {
 		panic(err)
 	}
-	myTemplatePattern := regexp.MustCompile(myTemplateRegex)
+	templatePattern := regexp.MustCompile(templateRegex)
 
-	myTemplateParts, err := cutTemplateString(templateString, closeDelimiter)
+	templateParts, err := cutTemplateString(templateString, closeDelimiter)
 	if err != nil {
 		panic(err)
 	}
 
 	results := []TemplatePart{}
 
-	for _, v := range myTemplateParts {
+	for _, v := range templateParts {
 
 		// match are the template parts matched against the template regex.
-		myTemplatePartMatches := myTemplatePattern.FindStringSubmatch(v)
+		templatePartMatches := templatePattern.FindStringSubmatch(v)
 
 		// name is the variable data structure to apply the template part to.
-		for i, variableName := range myTemplatePattern.SubexpNames() {
+		for i, variableName := range templatePattern.SubexpNames() {
 
 			// discard first variable name match and ensure a template part matched.
-			if i > 0 && i <= len(myTemplatePartMatches) && myTemplatePartMatches[i] != "" {
+			if i > 0 && i <= len(templatePartMatches) && templatePartMatches[i] != "" {
 				y := len(results)
 
 				results = append(results, TemplatePart{
-					TemplateString:  myTemplatePartMatches[i],
+					TemplateString:  templatePartMatches[i],
 					MatchedVariable: variableName,
 				})
 
@@ -74,19 +74,19 @@ func MultiplexAndExecute(templateString string, inventory map[string][]string) (
 					if err != nil {
 						return nil, err
 					}
-					results[y].Combinations = append(results[y].Combinations, matrix.Combination(o.String()))
+					results[y].Points = append(results[y].Points, matrix.Point(o.String()))
 				}
 			}
 		}
 	}
 
-	myParts := results
+	parts := results
 
-	matrixColumns := []matrix.Part{}
+	matrixColumns := []matrix.Column{}
 
-	for _, part := range myParts {
-		matrixColumns = append(matrixColumns, part.Part)
+	for _, part := range parts {
+		matrixColumns = append(matrixColumns, part.Column)
 	}
 
-	return matrix.GetCombinations(matrixColumns), nil
+	return matrix.GetColumnOrderedCombinationRows(matrixColumns), nil
 }

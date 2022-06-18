@@ -1,8 +1,8 @@
 package matrix
 
-type Combination string
+type Point string
 
-type Part struct {
-	Ordinate     int
-	Combinations []Combination
+type Column struct {
+	OrdinateIndex int
+	Points        []Point
 }

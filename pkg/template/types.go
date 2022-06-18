@@ -7,7 +7,7 @@ import (
 )
 
 type TemplatePart struct {
-	matrix.Part
+	matrix.Column
 	TemplateString  string
 	MatchedVariable string
 	Template        *t.Template

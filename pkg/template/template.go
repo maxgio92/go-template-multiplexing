@@ -43,36 +43,38 @@ func MultiplexAndExecute(templateString string, inventory map[string][]string) (
 	results := []TemplatePart{}
 
 	for _, v := range myTemplateParts {
-		match := myTemplatePattern.FindStringSubmatch(v)
 
-		for i, name := range myTemplatePattern.SubexpNames() {
-			// discard first match, avoid out of index, ensure match
-			if i > 0 && i <= len(match) && match[i] != "" {
-				for y, variableName := range supportedVariables {
-					if name == variableName {
-						results = append(results, TemplatePart{
-							TemplateString:  match[i],
-							MatchedVariable: variableName,
-						})
+		// match are the template parts matched against the template regex.
+		myTemplatePartMatches := myTemplatePattern.FindStringSubmatch(v)
 
-						results[y].TemplateString = strings.ReplaceAll(results[y].TemplateString, "{{ "+variableName+" }}", "{{ . }}")
-						results[y].Template = t.New(fmt.Sprintf("%d", y))
-						results[y].Template, err = results[y].Template.Parse(results[y].TemplateString)
-						if err != nil {
-							return nil, err
-						}
+		// name is the variable data structure to apply the template part to.
+		for i, variableName := range myTemplatePattern.SubexpNames() {
 
-						// for each item (variable name) of MatchedVariable `name`
-						// Compose one Template and `execute()` it
-						for _, value := range inventory[variableName] {
-							o := new(bytes.Buffer)
-							err = results[y].Template.Execute(o, value)
-							if err != nil {
-								return nil, err
-							}
-							results[y].Combinations = append(results[y].Combinations, matrix.Combination(o.String()))
-						}
+			// discard first variable name match and ensure a template part matched.
+			if i > 0 && i <= len(myTemplatePartMatches) && myTemplatePartMatches[i] != "" {
+				y := len(results)
+
+				results = append(results, TemplatePart{
+					TemplateString:  myTemplatePartMatches[i],
+					MatchedVariable: variableName,
+				})
+
+				results[y].TemplateString = strings.ReplaceAll(results[y].TemplateString, "{{ "+variableName+" }}", "{{ . }}")
+				results[y].Template = t.New(fmt.Sprintf("%d", y))
+				results[y].Template, err = results[y].Template.Parse(results[y].TemplateString)
+				if err != nil {
+					return nil, err
+				}
+
+				// for each item (variable name) of MatchedVariable
+				// Compose one Template and `execute()` it
+				for _, value := range inventory[variableName] {
+					o := new(bytes.Buffer)
+					err = results[y].Template.Execute(o, value)
+					if err != nil {
+						return nil, err
 					}
+					results[y].Combinations = append(results[y].Combinations, matrix.Combination(o.String()))
 				}
 			}
 		}

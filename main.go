@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	myTemplate = `Items are made also of {{ Materials }} and one of the team member is {{ Team }} and one of the cost is {{ Costs }}`
+	myTemplate = `Items are made also of {{ Materials }} and one of the team member is {{ Team }} and one of the cost is {{ Costs }} AGAIN {{ Costs }} AGAGAGAIN {{ Materials }}`
 
 	myInventoryMap = map[string][]string{
 		"Materials": {"wool", "iron"},

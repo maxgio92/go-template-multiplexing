@@ -70,7 +70,9 @@ func gotoNextColumn(points *[]string, row *string, abscissaIndex int, column *Co
 		}
 
 		// Move backward
-		abscissaIndex--
+		if abscissaIndex > 0 {
+			abscissaIndex--
+		}
 		column = &columns[abscissaIndex]
 
 		// Store where we gone

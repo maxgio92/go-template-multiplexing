@@ -35,33 +35,33 @@ func MultiplexAndExecute(templateString string, inventory map[string][]string) (
 	}
 	templatePattern := regexp.MustCompile(templateRegex)
 
-	templateParts, err := cutTemplateString(templateString, closeDelimiter)
+	ss, err := cutTemplateString(templateString, closeDelimiter)
 	if err != nil {
 		panic(err)
 	}
 
-	results := []TemplatePart{}
+	templateParts := []TemplatePart{}
 
-	for _, v := range templateParts {
+	for _, s := range ss {
 
 		// match are the template parts matched against the template regex.
-		templatePartMatches := templatePattern.FindStringSubmatch(v)
+		templatePartMatches := templatePattern.FindStringSubmatch(s)
 
 		// name is the variable data structure to apply the template part to.
 		for i, variableName := range templatePattern.SubexpNames() {
 
 			// discard first variable name match and ensure a template part matched.
 			if i > 0 && i <= len(templatePartMatches) && templatePartMatches[i] != "" {
-				y := len(results)
+				y := len(templateParts)
 
-				results = append(results, TemplatePart{
+				templateParts = append(templateParts, TemplatePart{
 					TemplateString:  templatePartMatches[i],
 					MatchedVariable: variableName,
 				})
 
-				results[y].TemplateString = strings.ReplaceAll(results[y].TemplateString, "{{ "+variableName+" }}", "{{ . }}")
-				results[y].Template = t.New(fmt.Sprintf("%d", y))
-				results[y].Template, err = results[y].Template.Parse(results[y].TemplateString)
+				templateParts[y].TemplateString = strings.ReplaceAll(templateParts[y].TemplateString, "{{ "+variableName+" }}", "{{ . }}")
+				templateParts[y].Template = t.New(fmt.Sprintf("%d", y))
+				templateParts[y].Template, err = templateParts[y].Template.Parse(templateParts[y].TemplateString)
 				if err != nil {
 					return nil, err
 				}
@@ -70,21 +70,19 @@ func MultiplexAndExecute(templateString string, inventory map[string][]string) (
 				// Compose one Template and `execute()` it
 				for _, value := range inventory[variableName] {
 					o := new(bytes.Buffer)
-					err = results[y].Template.Execute(o, value)
+					err = templateParts[y].Template.Execute(o, value)
 					if err != nil {
 						return nil, err
 					}
-					results[y].Points = append(results[y].Points, matrix.Point(o.String()))
+					templateParts[y].Points = append(templateParts[y].Points, matrix.Point(o.String()))
 				}
 			}
 		}
 	}
 
-	parts := results
-
 	matrixColumns := []matrix.Column{}
 
-	for _, part := range parts {
+	for _, part := range templateParts {
 		matrixColumns = append(matrixColumns, part.Column)
 	}
 

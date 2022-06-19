@@ -59,6 +59,7 @@ func cutTemplateString(t string, closeDelimiter string) ([]string, error) {
 		}
 		parts = append(parts, before+closeDelimiter)
 	}
+	parts[len(parts)-1] += before
 
 	return parts, nil
 }

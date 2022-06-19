@@ -31,13 +31,13 @@ func MultiplexAndExecute(templateString string, inventory map[string][]interface
 
 	templateRegex, err := generateTemplateRegex(supportedVariables)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	templatePattern := regexp.MustCompile(templateRegex)
 
 	ss, err := cutTemplateString(templateString, closeDelimiter)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	templateParts := []TemplatePart{}

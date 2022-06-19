@@ -16,6 +16,9 @@ func RunDemo() {
 	for _, v := range columns {
 		fmt.Println(v.Points)
 	}
-	combinations := GetColumnOrderedCombinationRows(columns)
+	combinations, err := GetColumnOrderedCombinationRows(columns)
+	if err != nil {
+		panic(err)
+	}
 	fmt.Println(combinations)
 }

@@ -1,5 +1,7 @@
 package matrix
 
+import "fmt"
+
 // (ordinate)
 // y
 // ^
@@ -15,7 +17,7 @@ package matrix
 // A + 2 + X
 // ...
 // B + 4 + Z
-func GetColumnOrderedCombinationRows(columns []Column) []string {
+func GetColumnOrderedCombinationRows(columns []Column) ([]string, error) {
 	rows := []string{}
 	row := ""
 	completed := false
@@ -26,21 +28,28 @@ func GetColumnOrderedCombinationRows(columns []Column) []string {
 		row = ""
 
 		// Start always from the first column (x=0)
-		gotoNextColumn(&rows, &row, 0, &columns[0], columns, &completed)
+		err := gotoNextColumn(&rows, &row, 0, &columns[0], columns, &completed)
+		if err != nil {
+			return nil, err
+		}
 
 		if columns[0].OrdinateIndex == len(columns[0].Points) || completed {
 			break
 		}
 	}
 
-	return rows
+	return rows, nil
 }
 
-func gotoNextColumn(points *[]string, row *string, abscissaIndex int, column *Column, columns []Column, completed *bool) {
+func gotoNextColumn(points *[]string, row *string, abscissaIndex int, column *Column, columns []Column, completed *bool) error {
 
 	if abscissaIndex+1 < len(columns) { // Until the last column is reached
 
-		*row += string(column.Points[column.OrdinateIndex])
+		sp, ok := column.Points[column.OrdinateIndex].(string)
+		if !ok {
+			return fmt.Errorf("a point of the matrix is not of supported types. Supported types are (string)")
+		}
+		*row += sp
 
 		// Move forward
 		abscissaIndex++
@@ -50,7 +59,11 @@ func gotoNextColumn(points *[]string, row *string, abscissaIndex int, column *Co
 	} else { // When the last column is reached
 
 		for _, point := range column.Points {
-			*points = append(*points, string(*row+string(point)))
+			sp, ok := point.(string)
+			if !ok {
+				return fmt.Errorf("a point of the matrix is not of supported types. Supported types are (string)")
+			}
+			*points = append(*points, string(*row+sp))
 		}
 
 		// Move backward
@@ -60,6 +73,7 @@ func gotoNextColumn(points *[]string, row *string, abscissaIndex int, column *Co
 		// Store where we gone
 		scrollDownPrevColumnPoint(column, columns, abscissaIndex, completed)
 	}
+	return nil
 }
 
 func scrollDownPrevColumnPoint(column *Column, columns []Column, abscissaIndex int, completed *bool) {

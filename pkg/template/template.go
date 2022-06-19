@@ -86,5 +86,10 @@ func MultiplexAndExecute(templateString string, inventory map[string][]string) (
 		matrixColumns = append(matrixColumns, part.Column)
 	}
 
-	return matrix.GetColumnOrderedCombinationRows(matrixColumns), nil
+	result, err := matrix.GetColumnOrderedCombinationRows(matrixColumns)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

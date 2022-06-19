@@ -1,6 +1,6 @@
 package matrix
 
-type Point string
+type Point interface{}
 
 type Column struct {
 	OrdinateIndex int

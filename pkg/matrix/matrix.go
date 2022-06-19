@@ -1,7 +1,5 @@
 package matrix
 
-import "fmt"
-
 // (ordinate)
 // y
 // ^
@@ -33,7 +31,12 @@ func GetColumnOrderedCombinationRows(columns []Column) ([]string, error) {
 			return nil, err
 		}
 
-		if columns[0].OrdinateIndex == len(columns[0].Points) || completed {
+		ssp, ok := columns[0].Points.([]string)
+		if !ok {
+			return nil, NewErrUnsopportedPointType()
+		}
+
+		if columns[0].OrdinateIndex == len(ssp) || completed {
 			break
 		}
 	}
@@ -43,27 +46,27 @@ func GetColumnOrderedCombinationRows(columns []Column) ([]string, error) {
 
 func gotoNextColumn(points *[]string, row *string, abscissaIndex int, column *Column, columns []Column, completed *bool) error {
 
+	ssp, ok := column.Points.([]string)
+	if !ok {
+		return NewErrUnsopportedPointType()
+	}
+
 	if abscissaIndex+1 < len(columns) { // Until the last column is reached
 
-		sp, ok := column.Points[column.OrdinateIndex].(string)
-		if !ok {
-			return fmt.Errorf("a point of the matrix is not of supported types. Supported types are (string)")
-		}
-		*row += sp
+		*row += ssp[column.OrdinateIndex]
 
 		// Move forward
 		abscissaIndex++
 		column = &columns[abscissaIndex]
-		gotoNextColumn(points, row, abscissaIndex, column, columns, completed)
+		err := gotoNextColumn(points, row, abscissaIndex, column, columns, completed)
+		if err != nil {
+			return err
+		}
 
 	} else { // When the last column is reached
 
-		for _, point := range column.Points {
-			sp, ok := point.(string)
-			if !ok {
-				return fmt.Errorf("a point of the matrix is not of supported types. Supported types are (string)")
-			}
-			*points = append(*points, string(*row+sp))
+		for _, point := range ssp {
+			*points = append(*points, string(*row+point))
 		}
 
 		// Move backward
@@ -71,14 +74,22 @@ func gotoNextColumn(points *[]string, row *string, abscissaIndex int, column *Co
 		column = &columns[abscissaIndex]
 
 		// Store where we gone
-		scrollDownPrevColumnPoint(column, columns, abscissaIndex, completed)
+		err := scrollDownPrevColumnPoint(column, columns, abscissaIndex, completed)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func scrollDownPrevColumnPoint(column *Column, columns []Column, abscissaIndex int, completed *bool) {
+func scrollDownPrevColumnPoint(column *Column, columns []Column, abscissaIndex int, completed *bool) error {
 
-	if column.OrdinateIndex+1 < len(column.Points) {
+	ssp, ok := column.Points.([]string)
+	if !ok {
+		return NewErrUnsopportedPointType()
+	}
+
+	if column.OrdinateIndex+1 < len(ssp) {
 		column.OrdinateIndex++
 
 	} else {
@@ -86,9 +97,14 @@ func scrollDownPrevColumnPoint(column *Column, columns []Column, abscissaIndex i
 		abscissaIndex--
 
 		if abscissaIndex >= 0 {
-			scrollDownPrevColumnPoint(&columns[abscissaIndex], columns, abscissaIndex, completed)
+
+			err := scrollDownPrevColumnPoint(&columns[abscissaIndex], columns, abscissaIndex, completed)
+			if err != nil {
+				return err
+			}
 		} else {
 			*completed = true
 		}
 	}
+	return nil
 }

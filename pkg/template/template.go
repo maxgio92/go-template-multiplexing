@@ -23,7 +23,7 @@ import (
 //
 // The result is multiple templates from a single template string and multiple
 // arbitrary variable values.
-func MultiplexAndExecute(templateString string, inventory map[string][]string) ([]string, error) {
+func MultiplexAndExecute(templateString string, inventory map[string][]interface{}) ([]string, error) {
 	supportedVariables, err := getSupportedVariables(templateString)
 	if err != nil {
 		return nil, err
@@ -59,6 +59,7 @@ func MultiplexAndExecute(templateString string, inventory map[string][]string) (
 					MatchedVariable: variableName,
 				})
 
+				templateParts[y].Points = []string{}
 				templateParts[y].TemplateString = strings.ReplaceAll(templateParts[y].TemplateString, "{{ "+variableName+" }}", "{{ . }}")
 				templateParts[y].Template = t.New(fmt.Sprintf("%d", y))
 				templateParts[y].Template, err = templateParts[y].Template.Parse(templateParts[y].TemplateString)
@@ -68,13 +69,15 @@ func MultiplexAndExecute(templateString string, inventory map[string][]string) (
 
 				// for each item (variable name) of MatchedVariable
 				// Compose one Template and `execute()` it
+
 				for _, value := range inventory[variableName] {
 					o := new(bytes.Buffer)
 					err = templateParts[y].Template.Execute(o, value)
 					if err != nil {
 						return nil, err
 					}
-					templateParts[y].Points = append(templateParts[y].Points, matrix.Point(o.String()))
+
+					templateParts[y].Points = append(templateParts[y].Points.([]string), o.String())
 				}
 			}
 		}

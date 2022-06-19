@@ -1,8 +1,8 @@
 package matrix
 
-type Point interface{}
+type Points interface{}
 
 type Column struct {
 	OrdinateIndex int
-	Points        []Point
+	Points        Points
 }
